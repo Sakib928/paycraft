@@ -1,19 +1,43 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logo.png";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { axiosPublic } from "../../hooks/useAxiosPublic";
+import Swal from "sweetalert2";
+import useAuth from "../../hooks/useAuth";
 const Login = () => {
+  const { setUser } = useAuth();
   const [showPin, setShowPin] = useState(false);
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const onSubmit = (data) => console.log(data);
+
+  const onSubmit = async (data) => {
+    const res = await axiosPublic.post("/login", data);
+    if (res.data.status === "success") {
+      // console.log(res.data.userData);
+      setUser(res.data.userData);
+      localStorage.setItem("user", JSON.stringify(res.data.userData));
+      localStorage.setItem("token", res.data.token);
+      Swal.fire("Successfully logged in");
+      navigate("/dashboard");
+    } else {
+      Swal.fire({
+        title: "Invalid credentials",
+        text: "There seems to be an error with you account",
+        icon: "error",
+      });
+    }
+  };
+
   const handlePinState = () => {
     setShowPin(!showPin);
   };
+
   return (
     <div className="w-full max-w-sm mx-auto overflow-hidden md:rounded-lg shadow-md bg-gray-800 md:mt-20 max-sm:h-screen">
       <div className="px-6 py-4">
